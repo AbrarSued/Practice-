@@ -95,37 +95,135 @@ void saveToFile(int arr[], int n, const char* filename) {
     }
 
     fclose(file);
-    printf("Массив сохранен в файл %s\n", filename);
 }
 
-int main() {
-    setlocale(LC_ALL, "");
-    int n, min_val, max_val;
-    const int consoleWidth = 90;
-    clock_t start, end;
-    double time_used;
+int createArray(int** arr_ptr, int* n_ptr, int* min_val_ptr, int* max_val_ptr, int* generation_type) {
+    int choice;
+    printf("\n Выберите способ заполнения массива:\n");
+    printf(" 1 - Случайная генерация\n");
+    printf(" 2 - Ручной ввод\n");
+    printf(" Ваш выбор: ");
+    scanf("%d", &choice);
 
-    printCentered("ШЕЙКЕРНАЯ СОРТИРОВКА", consoleWidth - 2);
+    if (choice != 1 && choice != 2) {
+        printf("\nОшибка: неверный выбор!\n");
+        return 0;
+    }
 
+    *generation_type = choice;
+
+    int n;
     printf(" Введите размер массива: ");
     scanf("%d", &n);
 
-    printf(" Введите минимальное значение элемента: ");
-    scanf("%d", &min_val);
-
-    printf(" Введите максимальное значение элемента: ");
-    scanf("%d", &max_val);
-
-    if (min_val > max_val) {
-        printf("\nОшибка: минимальное значение не может быть больше максимального!\n");
-        return 1;
+    if (n <= 0) {
+        printf("\nОшибка: размер массива должен быть положительным!\n");
+        return 0;
     }
 
     int* arr = (int*)malloc(n * sizeof(int));
     if (arr == NULL) {
-        printf("\n");
-        printCentered("ОШИБКА ВЫДЕЛЕНИЯ ПАМЯТИ!", consoleWidth - 2);
-        return 1;
+        printf("\nОШИБКА ВЫДЕЛЕНИЯ ПАМЯТИ!\n");
+        return 0;
+    }
+
+    if (choice == 1) {
+        int min_val, max_val;
+        printf(" Введите минимальное значение элемента: ");
+        scanf("%d", &min_val);
+        printf(" Введите максимальное значение элемента: ");
+        scanf("%d", &max_val);
+
+        if (min_val > max_val) {
+            printf("\nОшибка: минимальное значение не может быть больше максимального!\n");
+            free(arr);
+            return 0;
+        }
+
+        srand(time(0));
+        int range = max_val - min_val + 1;
+        for (int i = 0; i < n; i++) {
+            arr[i] = rand() % range + min_val;
+        }
+
+        *min_val_ptr = min_val;
+        *max_val_ptr = max_val;
+    }
+    else if (choice == 2) {
+        printf("\n Введите элементы массива:\n");
+        for (int i = 0; i < n; i++) {
+            printf(" Элемент [%d]: ", i + 1);
+            scanf("%d", &arr[i]);
+        }
+
+        int min_val = arr[0];
+        int max_val = arr[0];
+        for (int i = 1; i < n; i++) {
+            if (arr[i] < min_val) min_val = arr[i];
+            if (arr[i] > max_val) max_val = arr[i];
+        }
+
+        *min_val_ptr = min_val;
+        *max_val_ptr = max_val;
+    }
+
+    *arr_ptr = arr;
+    *n_ptr = n;
+    saveToFile(arr, n, "input.txt");
+    return 1;
+}
+
+int resizeArray(int** arr_ptr, int* n_ptr, int generation_type, int min_val, int max_val) {
+    int new_n;
+    printf(" Введите новый размер массива: ");
+    scanf("%d", &new_n);
+
+    if (new_n <= 0) {
+        printf("\nОшибка: размер массива должен быть положительным!\n");
+        return 0;
+    }
+
+    int* new_arr = (int*)malloc(new_n * sizeof(int));
+    if (new_arr == NULL) {
+        printf("\nОШИБКА ВЫДЕЛЕНИЯ ПАМЯТИ!\n");
+        return 0;
+    }
+
+    if (generation_type == 1) {
+        srand(time(0));
+        int range = max_val - min_val + 1;
+        for (int i = 0; i < new_n; i++) {
+            new_arr[i] = rand() % range + min_val;
+        }
+    }
+    else if (generation_type == 2) {
+        printf("\n Введите новые элементы массива:\n");
+        for (int i = 0; i < new_n; i++) {
+            printf(" Элемент [%d]: ", i + 1);
+            scanf("%d", &new_arr[i]);
+        }
+    }
+
+    if (*arr_ptr) {
+        free(*arr_ptr);
+    }
+
+    *arr_ptr = new_arr;
+    *n_ptr = new_n;
+    saveToFile(new_arr, new_n, "input.txt");
+    return 1;
+}
+
+void changeRange(int* arr, int n, int* min_val_ptr, int* max_val_ptr) {
+    int min_val, max_val;
+    printf(" Введите новый минимальный элемент: ");
+    scanf("%d", &min_val);
+    printf(" Введите новый максимальный элемент: ");
+    scanf("%d", &max_val);
+
+    if (min_val > max_val) {
+        printf("\nОшибка: минимальное значение не может быть больше максимального!\n");
+        return;
     }
 
     srand(time(0));
@@ -134,27 +232,112 @@ int main() {
         arr[i] = rand() % range + min_val;
     }
 
+    *min_val_ptr = min_val;
+    *max_val_ptr = max_val;
     saveToFile(arr, n, "input.txt");
-    printArrayFromFile("input.txt", "ИСХОДНЫЙ МАССИВ", consoleWidth);
+    printf(" Диапазон массива изменен\n");
+}
 
-    printf("\n");
-    printCentered("НАЧАЛО СОРТИРОВКИ", consoleWidth - 2);
+int main() {
+    setlocale(LC_ALL, "");
+    int n = 0;
+    int* arr = NULL;
+    int min_val = 0, max_val = 0;
+    int generation_type = 0;
+    const int consoleWidth = 90;
+    clock_t start, end;
+    double time_used = 0;
+
+    printCentered("ШЕЙКЕРНАЯ СОРТИРОВКА", consoleWidth - 2);
+
+    if (!createArray(&arr, &n, &min_val, &max_val, &generation_type)) {
+        return 1;
+    }
 
     start = clock();
     shakerSort(arr, n);
     end = clock();
-
     time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-
-    printf("\n");
-    printCentered("СОРТИРОВКА ЗАВЕРШЕНА", consoleWidth - 2);
-    printf(" Время выполнения сортировки: %.6f секунд\n", time_used);
-    printf(" Диапазон значений: [%d, %d]\n", min_val, max_val);
-    printf("\n");
-
     saveToFile(arr, n, "sorted.txt");
-    printArrayFromFile("sorted.txt", "ОТСОРТИРОВАННЫЙ МАССИВ", consoleWidth);
+    printf(" Сортировка выполнена за %.6f секунд\n", time_used);
+    printf(" Диапазон значений: [%d, %d]\n", min_val, max_val);
 
-    free(arr);
-    return 0;
+    int menu_choice;
+    while (1) {
+        printf("\n");
+        printCentered("ГЛАВНОЕ МЕНЮ", consoleWidth - 2);
+        printf("\n Текущий размер массива: %d\n", n);
+        printf(" Текущий способ заполнения: %s\n", generation_type == 1 ? "Случайный" : "Ручной");
+        if (generation_type == 1) {
+            printf(" Текущий диапазон значений: [%d, %d]\n", min_val, max_val);
+        }
+        printf("\n");
+        printf(" 1 - Изменить размер массива\n");
+        printf(" 2 - Просмотреть исходный массив\n");
+        printf(" 3 - Просмотреть отсортированный массив\n");
+        printf(" 4 - Очистить файлы\n");
+        printf(" 5 - Изменить диапазон массива\n");
+        printf(" 6 - Показать время последней сортировки\n");
+        printf(" 7 - Выйти из программы\n");
+        printf(" Ваш выбор: ");
+        scanf("%d", &menu_choice);
+
+        switch (menu_choice) {
+        case 1:
+            if (!resizeArray(&arr, &n, generation_type, min_val, max_val)) {
+                break;
+            }
+            start = clock();
+            shakerSort(arr, n);
+            end = clock();
+            time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+            saveToFile(arr, n, "sorted.txt");
+            printf(" Сортировка выполнена за %.6f секунд\n", time_used);
+            printf(" Новый размер массива: %d\n", n);
+           if (generation_type == 1) {
+                printf(" Диапазон значений: [%d, %d]\n", min_val, max_val);
+            }
+            break;
+
+        case 2:
+            printArrayFromFile("input.txt", "ИСХОДНЫЙ МАССИВ", consoleWidth);
+            break;
+
+        case 3:
+            printArrayFromFile("sorted.txt", "ОТСОРТИРОВАННЫЙ МАССИВ", consoleWidth);
+            break;
+
+        case 4:
+            remove("input.txt");
+            remove("sorted.txt");
+            printf(" Файлы input.txt и sorted.txt успешно удалены\n");
+            break;
+
+        case 5:
+            if (generation_type != 1) {
+                printf(" Изменение диапазона доступно только для случайно сгенерированных массивов!\n");
+                break;
+            }
+            changeRange(arr, n, &min_val, &max_val);
+            start = clock();
+            shakerSort(arr, n);
+            end = clock();
+            time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+            saveToFile(arr, n, "sorted.txt");
+            printf(" Сортировка выполнена за %.6f секунд\n", time_used);
+            printf(" Новый диапазон: [%d, %d]\n", min_val, max_val);
+            break;
+
+        case 6:
+            printf(" Время последней сортировки: %.6f секунд\n", time_used);
+            break;
+
+        case 7:
+            if (arr) free(arr);
+            return 0;
+
+        default:
+            printf(" Неверный выбор! Попробуйте снова.\n");
+        }
+    }
 }

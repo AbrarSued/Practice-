@@ -100,13 +100,26 @@ void saveToFile(int arr[], int n, const char* filename) {
 
 int main() {
     setlocale(LC_ALL, "");
-    int n;
+    int n, min_val, max_val;
     const int consoleWidth = 90;
+    clock_t start, end;
+    double time_used;
 
     printCentered("ШЕЙКЕРНАЯ СОРТИРОВКА", consoleWidth - 2);
 
     printf(" Введите размер массива: ");
     scanf("%d", &n);
+
+    printf(" Введите минимальное значение элемента: ");
+    scanf("%d", &min_val);
+
+    printf(" Введите максимальное значение элемента: ");
+    scanf("%d", &max_val);
+
+    if (min_val > max_val) {
+        printf("\nОшибка: минимальное значение не может быть больше максимального!\n");
+        return 1;
+    }
 
     int* arr = (int*)malloc(n * sizeof(int));
     if (arr == NULL) {
@@ -116,14 +129,28 @@ int main() {
     }
 
     srand(time(0));
+    int range = max_val - min_val + 1;
     for (int i = 0; i < n; i++) {
-        arr[i] = rand() % 10000;
+        arr[i] = rand() % range + min_val;
     }
 
     saveToFile(arr, n, "input.txt");
     printArrayFromFile("input.txt", "ИСХОДНЫЙ МАССИВ", consoleWidth);
 
+    printf("\n");
+    printCentered("НАЧАЛО СОРТИРОВКИ", consoleWidth - 2);
+
+    start = clock();
     shakerSort(arr, n);
+    end = clock();
+
+    time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+
+    printf("\n");
+    printCentered("СОРТИРОВКА ЗАВЕРШЕНА", consoleWidth - 2);
+    printf(" Время выполнения сортировки: %.6f секунд\n", time_used);
+    printf(" Диапазон значений: [%d, %d]\n", min_val, max_val);
+    printf("\n");
 
     saveToFile(arr, n, "sorted.txt");
     printArrayFromFile("sorted.txt", "ОТСОРТИРОВАННЫЙ МАССИВ", consoleWidth);

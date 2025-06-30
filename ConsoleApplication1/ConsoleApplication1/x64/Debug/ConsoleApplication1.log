@@ -1,3 +1,4 @@
 ﻿  ConsoleApplication1.cpp
-C:\Users\MSI\Desktop\Practice\ConsoleApplication1\ConsoleApplication1\ConsoleApplication1.cpp(43,13): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\MSI\Desktop\Practice\ConsoleApplication1\ConsoleApplication1\ConsoleApplication1.cpp(118,11): error C3861: 'time': identifier not found
+C:\Users\MSI\Desktop\priactice\Practice-\ConsoleApplication1\ConsoleApplication1\ConsoleApplication1.cpp(43,13): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\MSI\Desktop\priactice\Practice-\ConsoleApplication1\ConsoleApplication1\ConsoleApplication1.cpp(131,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+  ConsoleApplication1.vcxproj -> C:\Users\MSI\Desktop\priactice\Practice-\ConsoleApplication1\x64\Debug\ConsoleApplication1.exe
